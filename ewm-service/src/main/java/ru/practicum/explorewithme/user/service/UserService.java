@@ -10,7 +10,7 @@ public interface UserService {
 
     List<UserDto> findByIds(List<Long> ids);
 
-    UserDto create (NewUserRequest newUserRequest);
+    UserDto create(NewUserRequest newUserRequest);
 
     void delete(long userId) throws ObjectNotFoundException;
 }

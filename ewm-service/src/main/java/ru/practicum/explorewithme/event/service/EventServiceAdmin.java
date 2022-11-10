@@ -1,6 +1,5 @@
 package ru.practicum.explorewithme.event.service;
 
-import org.springframework.web.bind.annotation.PathVariable;
 import ru.practicum.explorewithme.event.dto.AdminUpdateEventRequest;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
 import ru.practicum.explorewithme.event.model.EventParametersAdmin;

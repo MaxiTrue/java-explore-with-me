@@ -1,7 +1,6 @@
 package ru.practicum.explorewithme.user.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.exception.ObjectNotFoundException;
 import ru.practicum.explorewithme.user.dto.NewUserRequest;
@@ -32,7 +31,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(long userId) throws ObjectNotFoundException{
+    public void delete(long userId) throws ObjectNotFoundException {
         User user = userStorage.findById(userId).orElseThrow(() -> new ObjectNotFoundException(userId, "User"));
         userStorage.delete(user);
     }

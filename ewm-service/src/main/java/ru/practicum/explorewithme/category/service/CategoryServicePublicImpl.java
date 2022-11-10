@@ -10,7 +10,6 @@ import ru.practicum.explorewithme.category.storage.CategoryStorage;
 import ru.practicum.explorewithme.exception.ObjectNotFoundException;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
