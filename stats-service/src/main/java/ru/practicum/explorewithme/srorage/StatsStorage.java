@@ -27,4 +27,5 @@ public interface StatsStorage extends JpaRepository<EndpointHit, Long> {
     List<ViewStats> getViewStatsUnique(@Param("uris") List<String> uris, @Param("start") LocalDateTime start,
                                        @Param("end") LocalDateTime end);
 
+
 }
