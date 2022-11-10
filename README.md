@@ -1,6 +1,6 @@
 # java-explore-with-me
 Template repository for ExploreWithMe project.
-[Ссылка на pullrequest]()
+[Ссылка на pullrequest](https://github.com/MaxiTrue/java-explore-with-me/pulls)
 
 Приложение ExploreWithMe дает возможность делиться информацией об интересных событиях
 и помогает найти компанию для участия в них. Это приложение — афиша, где можно предложить
