@@ -12,8 +12,8 @@ import java.util.ArrayList;
 @RestControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler({ObjectNotFoundException.class})
-    public ResponseEntity<Object> objectNotFoundException(ObjectNotFoundException e) {
+    @ExceptionHandler(ObjectNotFoundException.class)
+    public ResponseEntity<Object> objectNotFoundException(final ObjectNotFoundException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 new ArrayList<>(),
                 "NOT_FOUND",
@@ -26,7 +26,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, ValidException.class})
-    public ResponseEntity<Object> validException(Exception e) {
+    public ResponseEntity<Object> validException(final Exception e) {
 
         ErrorResponse errorResponse = new ErrorResponse(
                 new ArrayList<>(),
