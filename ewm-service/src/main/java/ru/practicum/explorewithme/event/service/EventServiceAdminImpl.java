@@ -7,6 +7,7 @@ import ru.practicum.explorewithme.category.storage.CategoryStorage;
 import ru.practicum.explorewithme.client.StatClient;
 import ru.practicum.explorewithme.comment.dto.CommentFullDto;
 import ru.practicum.explorewithme.comment.mapper.CommentMapper;
+import ru.practicum.explorewithme.comment.model.Comment;
 import ru.practicum.explorewithme.comment.storage.CommentStorage;
 import ru.practicum.explorewithme.event.dto.AdminUpdateEventRequest;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
@@ -25,6 +26,7 @@ import javax.xml.bind.ValidationException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,7 +61,8 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
             long confirmedRequests = participationRequestStorage
                     .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
             List<CommentFullDto> commentFullDtoList = commentStorage.findAllByEventId(event.getId())
-                    .stream().map(commentMapper::toCommentFullDto).collect(Collectors.toList());
+                    .stream().sorted(Comparator.comparing(Comment::getCommentDate))
+                    .map(commentMapper::toCommentFullDto).collect(Collectors.toList());
             return eventMapper.toEvenFullDto(event, mapViews.get(event.getId()), confirmedRequests, commentFullDtoList);
         }).collect(Collectors.toList());
 
@@ -110,7 +113,8 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
         long confirmedRequest = participationRequestStorage
                 .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
         List<CommentFullDto> commentFullDtoList = commentStorage.findAllByEventId(event.getId())
-                .stream().map(commentMapper::toCommentFullDto).collect(Collectors.toList());
+                .stream().sorted(Comparator.comparing(Comment::getCommentDate))
+                .map(commentMapper::toCommentFullDto).collect(Collectors.toList());
         return eventMapper.toEvenFullDto(event, views, confirmedRequest, commentFullDtoList);
     }
 

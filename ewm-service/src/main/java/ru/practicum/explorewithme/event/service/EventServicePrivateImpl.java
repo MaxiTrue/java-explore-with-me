@@ -8,6 +8,7 @@ import ru.practicum.explorewithme.category.storage.CategoryStorage;
 import ru.practicum.explorewithme.client.StatClient;
 import ru.practicum.explorewithme.comment.dto.CommentFullDto;
 import ru.practicum.explorewithme.comment.mapper.CommentMapper;
+import ru.practicum.explorewithme.comment.model.Comment;
 import ru.practicum.explorewithme.comment.storage.CommentStorage;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
 import ru.practicum.explorewithme.event.dto.EventShortDto;
@@ -33,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -145,8 +147,9 @@ public class EventServicePrivateImpl implements EventServicePrivate {
             views = statClient.getView(event, Boolean.FALSE);
             confirmedRequests = participationRequestStorage
                     .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
-            commentFullDtoList = commentStorage.findAllByEventId(eventId)
-                    .stream().map(commentMapper::toCommentFullDto).collect(Collectors.toList());
+            commentFullDtoList = commentStorage.findAllByEventId(event.getId())
+                    .stream().sorted(Comparator.comparing(Comment::getCommentDate))
+                    .map(commentMapper::toCommentFullDto).collect(Collectors.toList());
         }
 
         return eventMapper.toEvenFullDto(event, views, confirmedRequests, commentFullDtoList);

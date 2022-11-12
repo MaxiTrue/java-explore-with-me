@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.client.StatClient;
 import ru.practicum.explorewithme.comment.dto.CommentFullDto;
 import ru.practicum.explorewithme.comment.mapper.CommentMapper;
+import ru.practicum.explorewithme.comment.model.Comment;
 import ru.practicum.explorewithme.comment.storage.CommentStorage;
 import ru.practicum.explorewithme.event.dto.EndpointHit;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
@@ -48,8 +49,9 @@ public class EventServicePublicImpl implements EventServicePublic {
         long views = statClient.getView(event, Boolean.FALSE);
         long confirmedRequests = participationRequestStorage
                 .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
-        List<CommentFullDto> commentFullDtoList = commentStorage.findAllByEventId(eventId)
-                .stream().map(commentMapper::toCommentFullDto).collect(Collectors.toList());
+        List<CommentFullDto> commentFullDtoList = commentStorage.findAllByEventId(event.getId())
+                .stream().sorted(Comparator.comparing(Comment::getCommentDate))
+                .map(commentMapper::toCommentFullDto).collect(Collectors.toList());
 
         EventFullDto eventFullDto = eventMapper.toEvenFullDto(event, views, confirmedRequests, commentFullDtoList);
 
