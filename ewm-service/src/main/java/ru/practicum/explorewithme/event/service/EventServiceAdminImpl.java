@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.category.model.Category;
 import ru.practicum.explorewithme.category.storage.CategoryStorage;
 import ru.practicum.explorewithme.client.StatClient;
+import ru.practicum.explorewithme.comment.dto.CommentFullDto;
+import ru.practicum.explorewithme.comment.mapper.CommentMapper;
+import ru.practicum.explorewithme.comment.storage.CommentStorage;
 import ru.practicum.explorewithme.event.dto.AdminUpdateEventRequest;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
 import ru.practicum.explorewithme.event.mapper.EventMapper;
@@ -21,6 +24,7 @@ import ru.practicum.explorewithme.request.storage.ParticipationRequestStorage;
 import javax.xml.bind.ValidationException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +37,8 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
     private final ParticipationRequestStorage participationRequestStorage;
     private final CategoryStorage categoryStorage;
     private final LocationStorage locationStorage;
+    private final CommentStorage commentStorage;
+    private final CommentMapper commentMapper;
     private final EventMapper eventMapper;
     private final StatClient statClient;
 
@@ -52,7 +58,9 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
         return events.stream().map(event -> {
             long confirmedRequests = participationRequestStorage
                     .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
-            return eventMapper.toEvenFullDto(event, mapViews.get(event.getId()), confirmedRequests);
+            List<CommentFullDto> commentFullDtoList = commentStorage.findAllByEventId(event.getId())
+                    .stream().map(commentMapper::toCommentFullDto).collect(Collectors.toList());
+            return eventMapper.toEvenFullDto(event, mapViews.get(event.getId()), confirmedRequests, commentFullDtoList);
         }).collect(Collectors.toList());
 
     }
@@ -101,7 +109,9 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
         long views = statClient.getView(event, Boolean.FALSE);
         long confirmedRequest = participationRequestStorage
                 .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
-        return eventMapper.toEvenFullDto(event, views, confirmedRequest);
+        List<CommentFullDto> commentFullDtoList = commentStorage.findAllByEventId(event.getId())
+                .stream().map(commentMapper::toCommentFullDto).collect(Collectors.toList());
+        return eventMapper.toEvenFullDto(event, views, confirmedRequest, commentFullDtoList);
     }
 
     @Override
@@ -116,7 +126,7 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
         event.setState(EventState.PUBLISHED);
         eventStorage.save(event);
 
-        return eventMapper.toEvenFullDto(event, 0L, 0L);
+        return eventMapper.toEvenFullDto(event, 0L, 0L, new ArrayList<>());
     }
 
     @Override
@@ -129,6 +139,6 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
         event.setState(EventState.CANCELED);
         eventStorage.save(event);
 
-        return eventMapper.toEvenFullDto(event, 0L, 0L);
+        return eventMapper.toEvenFullDto(event, 0L, 0L, new ArrayList<>());
     }
 }

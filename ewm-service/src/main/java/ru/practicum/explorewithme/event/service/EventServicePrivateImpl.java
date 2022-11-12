@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.category.model.Category;
 import ru.practicum.explorewithme.category.storage.CategoryStorage;
 import ru.practicum.explorewithme.client.StatClient;
+import ru.practicum.explorewithme.comment.dto.CommentFullDto;
+import ru.practicum.explorewithme.comment.mapper.CommentMapper;
+import ru.practicum.explorewithme.comment.storage.CommentStorage;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
 import ru.practicum.explorewithme.event.dto.EventShortDto;
 import ru.practicum.explorewithme.event.dto.NewEventDto;
@@ -29,6 +32,7 @@ import ru.practicum.explorewithme.user.storage.UserStorage;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,6 +46,8 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     private final CategoryStorage categoryStorage;
     private final LocationStorage locationStorage;
     private final ParticipationRequestStorage participationRequestStorage;
+    private final CommentStorage commentStorage;
+    private final CommentMapper commentMapper;
     private final EventMapper eventMapper;
     private final ParticipationRequestMapper participationRequestMapper;
     private final StatClient statClient;
@@ -62,7 +68,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
                                 newEventDto.getLocation().getLat(),
                                 newEventDto.getLocation().getLon())));
         event.setLocation(location);
-        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L);
+        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L, new ArrayList<>());
     }
 
     @Override
@@ -106,7 +112,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
 
         if (event.getState() == EventState.CANCELED) event.setState(EventState.PENDING);
 
-        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L);
+        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L, new ArrayList<>());
     }
 
     @Override
@@ -134,13 +140,16 @@ public class EventServicePrivateImpl implements EventServicePrivate {
 
         long views = 0;
         long confirmedRequests = 0;
+        List<CommentFullDto> commentFullDtoList = new ArrayList<>();
         if (event.getState() == EventState.PUBLISHED) {
             views = statClient.getView(event, Boolean.FALSE);
             confirmedRequests = participationRequestStorage
                     .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
+            commentFullDtoList = commentStorage.findAllByEventId(eventId)
+                    .stream().map(commentMapper::toCommentFullDto).collect(Collectors.toList());
         }
 
-        return eventMapper.toEvenFullDto(event, views, confirmedRequests);
+        return eventMapper.toEvenFullDto(event, views, confirmedRequests, commentFullDtoList);
     }
 
     @Override
@@ -151,7 +160,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
         if (event.getState() == EventState.PUBLISHED) throw new ValidException("You can't cancel a published event.");
         event.setState(EventState.CANCELED);
 
-        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L);
+        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L, new ArrayList<>());
     }
 
     @Override
