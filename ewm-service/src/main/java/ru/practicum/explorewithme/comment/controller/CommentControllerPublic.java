@@ -25,6 +25,7 @@ public class CommentControllerPublic {
     ResponseEntity<Object> create(@Validated @RequestBody NewCommentDto commentDto,
                                   @PathVariable("userId") long commentatorId,
                                   @PathVariable("eventId") long eventId) throws ObjectNotFoundException {
+        log.debug("Request accepted POST: /users/{userId}/events/{eventId}/comments");
         commentDto.setByAdmin(Boolean.FALSE);
         commentDto.setPinned(Boolean.FALSE);
         commentDto.setChanged(Boolean.FALSE);
@@ -37,6 +38,7 @@ public class CommentControllerPublic {
                                   @PathVariable("userId") long commentatorId,
                                   @PathVariable("eventId") long eventId,
                                   @PathVariable("commId") long commId) throws ObjectNotFoundException, ValidException {
+        log.debug("Request accepted PATCH: /users/{userId}/events/{eventId}/comments/{commId}");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(commentServicePublic.update(commentDto, commentatorId, eventId, commId));
     }
@@ -45,6 +47,7 @@ public class CommentControllerPublic {
     ResponseEntity<Object> delete(@PathVariable("userId") long commentatorId,
                                   @PathVariable("eventId") long eventId,
                                   @PathVariable("commId") long commId) throws ObjectNotFoundException, ValidException {
+        log.debug("Request accepted DELETE: /users/{userId}/events/{eventId}/comments/{commId}");
         commentServicePublic.delete(commentatorId, eventId, commId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

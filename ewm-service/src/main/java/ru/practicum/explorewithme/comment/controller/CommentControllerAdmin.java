@@ -24,6 +24,7 @@ public class CommentControllerAdmin {
     @PostMapping
     ResponseEntity<Object> create(@Validated @RequestBody NewCommentDto commentDto,
                                   @PathVariable("eventId") long eventId) throws ObjectNotFoundException {
+        log.debug("Request accepted POST: /admin/events/{eventId}/comments");
         commentDto.setByAdmin(Boolean.TRUE);
         commentDto.setPinned(Boolean.FALSE);
         commentDto.setChanged(Boolean.FALSE);
@@ -34,6 +35,7 @@ public class CommentControllerAdmin {
     ResponseEntity<Object> update(@Validated @RequestBody UpdateCommentDto commentDto,
                                   @PathVariable("eventId") long eventId,
                                   @PathVariable("commId") long commId) throws ObjectNotFoundException, ValidException {
+        log.debug("Request accepted PATCH: /admin/events/{eventId}/comments/{commId}");
         return ResponseEntity.status(HttpStatus.OK).body(commentServiceAdmin.update(commentDto, eventId, commId));
     }
 
@@ -41,6 +43,7 @@ public class CommentControllerAdmin {
     ResponseEntity<Object> pinComment(@PathVariable("eventId") long eventId,
                                       @PathVariable("commId") long commId)
             throws ObjectNotFoundException, ValidException {
+        log.debug("Request accepted PATCH: /admin/events/{eventId}/comments/{commId}/pin");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(commentServiceAdmin.setPinComment(eventId, commId, Boolean.TRUE));
     }
@@ -49,6 +52,7 @@ public class CommentControllerAdmin {
     ResponseEntity<Object> unpinComment(@PathVariable("eventId") long eventId,
                                         @PathVariable("commId") long commId)
             throws ObjectNotFoundException, ValidException {
+        log.debug("Request accepted DELETE: /admin/events/{eventId}/comments/{commId}/pin");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(commentServiceAdmin.setPinComment(eventId, commId, Boolean.FALSE));
     }
@@ -57,6 +61,7 @@ public class CommentControllerAdmin {
     ResponseEntity<Object> delete(@PathVariable("eventId") long eventId,
                                   @PathVariable("commId") long commId)
             throws ObjectNotFoundException, ValidException {
+        log.debug("Request accepted DELETE: /admin/events/{eventId}/comments");
         commentServiceAdmin.delete(eventId, commId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
