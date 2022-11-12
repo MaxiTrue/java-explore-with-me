@@ -5,13 +5,11 @@ import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.dto.EndpointHitDto;
 import ru.practicum.explorewithme.dto.ViewStats;
 import ru.practicum.explorewithme.mapper.StatsMapper;
-import ru.practicum.explorewithme.model.EndpointHit;
 import ru.practicum.explorewithme.srorage.StatsStorage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
