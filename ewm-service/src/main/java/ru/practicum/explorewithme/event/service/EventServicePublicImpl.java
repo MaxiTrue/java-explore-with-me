@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +43,7 @@ public class EventServicePublicImpl implements EventServicePublic {
 
         long views = statClient.getView(event, Boolean.FALSE);
         long confirmedRequests = participationRequestStorage
-                .findAllByEventIdAndStatus(eventId, StatusRequest.CONFIRMED).size();
+                .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
 
         EventFullDto eventFullDto = eventMapper.toEvenFullDto(event, views, confirmedRequests);
 
@@ -76,7 +78,7 @@ public class EventServicePublicImpl implements EventServicePublic {
         List<EventShortDto> eventShortDtoList = new ArrayList<>();
         for (Event event : eventList) {
             long confirmedRequests = participationRequestStorage
-                    .findAllByEventIdAndStatus(event.getId(), StatusRequest.CONFIRMED).size();
+                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
             eventShortDtoList.add(eventMapper.toEventShortDto(event, mapViews.get(event.getId()), confirmedRequests));
         }
 
@@ -84,14 +86,13 @@ public class EventServicePublicImpl implements EventServicePublic {
             eventShortDtoList.sort((o1, o2) -> o2.getViews().compareTo(o1.getViews()));
         }
 
-        for (Event event : eventList) {
-            statClient.saveHit(EndpointHit.builder()
-                    .app(appName)
-                    .ip(request.getRemoteAddr())
-                    .uri(request.getRequestURI() + "/" + event.getId())
-                    .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                    .build());
-        }
+        List<EndpointHit> endpointHitList = eventList.stream().map(event -> EndpointHit.builder()
+                .app(appName)
+                .ip(request.getRemoteAddr())
+                .uri(request.getRequestURI() + "/" + event.getId())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build()).collect(Collectors.toList());
+        statClient.saveHits(endpointHitList);
 
         return eventShortDtoList;
     }

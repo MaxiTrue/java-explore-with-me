@@ -43,7 +43,7 @@ public class ParticipationRequestServicePrivateImpl implements ParticipationRequ
         if (event.getOrganizer().getId() == userId) throw new ValidException("Request for your event.");
 
         long amountConfirmedRequest = participationRequestStorage
-                .findAllByEventIdAndStatus(eventId, StatusRequest.CONFIRMED).size();
+                .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
         if (amountConfirmedRequest >= event.getParticipantLimit()) throw new ValidException("All places are occupied.");
 
         ParticipationRequest participationRequest = participationRequestMapper

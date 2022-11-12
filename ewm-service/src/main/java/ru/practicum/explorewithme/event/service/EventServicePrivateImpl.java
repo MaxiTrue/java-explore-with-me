@@ -120,7 +120,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
 
         return events.stream().map(event -> {
             long confirmedRequests = participationRequestStorage
-                    .findAllByEventIdAndStatus(event.getId(), StatusRequest.CONFIRMED).size();
+                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
             return eventMapper.toEventShortDto(event, mapViews.get(event.getId()), confirmedRequests);
         }).collect(Collectors.toList());
     }
@@ -137,7 +137,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
         if (event.getState() == EventState.PUBLISHED) {
             views = statClient.getView(event, Boolean.FALSE);
             confirmedRequests = participationRequestStorage
-                    .findAllByEventIdAndStatus(eventId, StatusRequest.CONFIRMED).size();
+                    .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
         }
 
         return eventMapper.toEvenFullDto(event, views, confirmedRequests);
@@ -185,7 +185,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
 
         // проверим не исчерпан ли лимит на заявки
         long confirmedRequests = participationRequestStorage
-                .findAllByEventIdAndStatus(event.getId(), StatusRequest.CONFIRMED).size();
+                .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
         if (confirmedRequests == event.getParticipantLimit()) throw new ValidException("Limit has been exhausted.");
 
         request.setStatus(StatusRequest.CONFIRMED);
@@ -199,8 +199,8 @@ public class EventServicePrivateImpl implements EventServicePrivate {
                     .findAllByEventIdAndStatus(eventId, StatusRequest.PENDING);
             for (ParticipationRequest pendingRequest : participationRequests) {
                 pendingRequest.setStatus(StatusRequest.REJECTED);
-                participationRequestStorage.save(pendingRequest);
             }
+            participationRequestStorage.saveAll(participationRequests);
         }
 
         return participationRequestMapper.toParticipationRequestDto(confirmedRequest);

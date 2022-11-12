@@ -49,7 +49,7 @@ public class CompilationServiceAdminImpl implements CompilationServiceAdmin {
 
         List<EventShortDto> eventShortDtoList = compilation.getEvents().stream().map(event -> {
             long confirmedRequests = participationRequestStorage
-                    .findAllByEventIdAndStatus(event.getId(), StatusRequest.CONFIRMED).size();
+                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
             return eventMapper.toEventShortDto(event, views.get(event.getId()), confirmedRequests);
         }).collect(Collectors.toList());
 

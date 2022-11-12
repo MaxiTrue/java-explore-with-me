@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.explorewithme.Create;
-import ru.practicum.explorewithme.Update;
+import ru.practicum.explorewithme.constaints.Create;
+import ru.practicum.explorewithme.constaints.Update;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

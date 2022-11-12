@@ -5,11 +5,14 @@ import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.dto.EndpointHitDto;
 import ru.practicum.explorewithme.dto.ViewStats;
 import ru.practicum.explorewithme.mapper.StatsMapper;
+import ru.practicum.explorewithme.model.EndpointHit;
 import ru.practicum.explorewithme.srorage.StatsStorage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,8 +22,8 @@ public class StatsServiceImpl implements StatsService {
     private final StatsMapper statsMapper;
 
     @Override
-    public void save(EndpointHitDto endpointHit) {
-        hitStorage.save(statsMapper.toHitEntity(endpointHit));
+    public void save(List<EndpointHitDto> endpointHitDtoList) {
+        hitStorage.saveAll(endpointHitDtoList.stream().map(statsMapper::toHitEntity).collect(Collectors.toList()));
     }
 
     public List<ViewStats> getViews(List<String> uris, Boolean unique, String start, String end) {

@@ -51,7 +51,7 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
 
         return events.stream().map(event -> {
             long confirmedRequests = participationRequestStorage
-                    .findAllByEventIdAndStatus(event.getId(), StatusRequest.CONFIRMED).size();
+                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
             return eventMapper.toEvenFullDto(event, mapViews.get(event.getId()), confirmedRequests);
         }).collect(Collectors.toList());
 
@@ -100,7 +100,7 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
 
         long views = statClient.getView(event, Boolean.FALSE);
         long confirmedRequest = participationRequestStorage
-                .findAllByEventIdAndStatus(eventId, StatusRequest.CONFIRMED).size();
+                .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
         return eventMapper.toEvenFullDto(event, views, confirmedRequest);
     }
 

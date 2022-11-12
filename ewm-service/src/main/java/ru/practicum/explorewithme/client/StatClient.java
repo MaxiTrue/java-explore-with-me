@@ -81,7 +81,11 @@ public class StatClient extends BaseClient {
 
 
     public ResponseEntity<Object> saveHit(EndpointHit hit) {
-        return post("/hit", hit);
+        return saveHits(List.of(hit));
+    }
+
+    public ResponseEntity<Object> saveHits(List<EndpointHit> endpointHitList) {
+        return post("/hit", endpointHitList);
     }
 
     private ResponseEntity<Object> getStats(String start, String end, List<String> uris, Boolean unique) {
