@@ -7,7 +7,8 @@ import java.util.List;
 
 public interface StatsService {
 
-    void save(List<EndpointHitDto> endpointHitDtoList);
+    void saveHit(EndpointHitDto endpointHitDto);
+    void saveHits(List<EndpointHitDto> endpointHitDtoList);
 
     List<ViewStats> getViews(List<String> uris, Boolean unique, String start, String end);
 

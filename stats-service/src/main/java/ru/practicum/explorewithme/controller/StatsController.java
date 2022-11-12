@@ -21,9 +21,16 @@ public class StatsController {
     private final StatsService statsService;
 
     @PostMapping("/hit")
-    public ResponseEntity<Object> save(@Validated @RequestBody List<EndpointHitDto> endpointHitDtoList) {
+    public ResponseEntity<Object> saveHit(@Validated @RequestBody EndpointHitDto endpointHitDto) {
         log.debug("Request accepted POST: /hit");
-        statsService.save(endpointHitDtoList);
+        statsService.saveHit(endpointHitDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/hits")
+    public ResponseEntity<Object> saveHits(@Validated @RequestBody List<EndpointHitDto> endpointHitDtoList) {
+        log.debug("Request accepted POST: /hit");
+        statsService.saveHits(endpointHitDtoList);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

@@ -20,7 +20,12 @@ public class StatsServiceImpl implements StatsService {
     private final StatsMapper statsMapper;
 
     @Override
-    public void save(List<EndpointHitDto> endpointHitDtoList) {
+    public void saveHit(EndpointHitDto endpointHitDto) {
+        hitStorage.save(statsMapper.toHitEntity(endpointHitDto));
+    }
+
+    @Override
+    public void saveHits(List<EndpointHitDto> endpointHitDtoList) {
         hitStorage.saveAll(endpointHitDtoList.stream().map(statsMapper::toHitEntity).collect(Collectors.toList()));
     }
 
