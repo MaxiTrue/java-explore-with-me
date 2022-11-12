@@ -19,6 +19,7 @@ public class StatsServiceImpl implements StatsService {
     private final StatsStorage hitStorage;
     private final StatsMapper statsMapper;
 
+
     @Override
     public void saveHit(EndpointHitDto endpointHitDto) {
         hitStorage.save(statsMapper.toHitEntity(endpointHitDto));
@@ -29,6 +30,7 @@ public class StatsServiceImpl implements StatsService {
         hitStorage.saveAll(endpointHitDtoList.stream().map(statsMapper::toHitEntity).collect(Collectors.toList()));
     }
 
+    @Override
     public List<ViewStats> getViews(List<String> uris, Boolean unique, String start, String end) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
