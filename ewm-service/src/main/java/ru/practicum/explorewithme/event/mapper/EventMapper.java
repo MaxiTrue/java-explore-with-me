@@ -5,7 +5,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import ru.practicum.explorewithme.category.dto.CategoryDto;
 import ru.practicum.explorewithme.comment.dto.CommentFullDto;
-import ru.practicum.explorewithme.comment.mapper.CommentMapper;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
 import ru.practicum.explorewithme.event.dto.EventShortDto;
 import ru.practicum.explorewithme.event.dto.NewEventDto;
@@ -36,7 +35,8 @@ public class EventMapper {
     }
 
     public EventFullDto toEvenFullDto(Event event, @Nullable Long views, @Nullable Long confirmedRequests,
-                                      List<CommentFullDto> commentFullDtoList ) {
+                                      List<CommentFullDto> commentFullDtoList) {
+
         return EventFullDto.builder()
                 .annotation(event.getAnnotation())
                 .category(new CategoryDto(event.getCategory().getId(), event.getCategory().getName()))
@@ -59,6 +59,7 @@ public class EventMapper {
     }
 
     public EventShortDto toEventShortDto(Event event, @Nullable Long views, @Nullable Long confirmedRequests) {
+
         return EventShortDto.builder()
                 .annotation(event.getAnnotation())
                 .category(new CategoryDto(event.getCategory().getId(), event.getCategory().getName()))
