@@ -59,8 +59,11 @@ public class CommentServiceAdminImpl implements CommentServiceAdmin {
         Comment comment = commentStorage.findById(commId)
                 .orElseThrow(() -> new ObjectNotFoundException(commId, "Comment"));
 
+        // либо 1, либо 0
+        long countPinnedComment = commentStorage.findCountPinnedCommentByEventIdAndPinned(eventId, Boolean.TRUE);
+
         // закрепить можно только один комментарий
-        if (pin && comment.getPinned()) throw new ValidException("Only one comment can be pinned.");
+        if (pin && countPinnedComment > 0) throw new ValidException("Only one comment can be pinned.");
 
         comment.setPinned(pin);
         return commentMapper.toCommentFullDto(commentStorage.save(comment));
