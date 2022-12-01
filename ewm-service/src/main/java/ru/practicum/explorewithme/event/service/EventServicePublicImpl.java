@@ -4,6 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.client.StatClient;
+import ru.practicum.explorewithme.comment.dto.CommentFullDto;
+import ru.practicum.explorewithme.comment.mapper.CommentMapper;
+import ru.practicum.explorewithme.comment.model.Comment;
+import ru.practicum.explorewithme.comment.storage.CommentStorage;
 import ru.practicum.explorewithme.event.dto.EndpointHit;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
 import ru.practicum.explorewithme.event.dto.EventShortDto;
@@ -15,6 +19,7 @@ import ru.practicum.explorewithme.event.model.EventState;
 import ru.practicum.explorewithme.event.storage.EventStorage;
 import ru.practicum.explorewithme.exception.ObjectNotFoundException;
 import ru.practicum.explorewithme.request.model.StatusRequest;
+import ru.practicum.explorewithme.request.servise.ParticipationRequestPrivateService;
 import ru.practicum.explorewithme.request.storage.ParticipationRequestStorage;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +37,10 @@ public class EventServicePublicImpl implements EventServicePublic {
 
     private final EventStorage eventStorage;
     private final ParticipationRequestStorage participationRequestStorage;
+    private final CommentStorage commentStorage;
+    private final ParticipationRequestPrivateService participationRequestPrivateService;
     private final EventMapper eventMapper;
+    private final CommentMapper commentMapper;
     private final StatClient statClient;
 
     @Override
@@ -43,8 +51,11 @@ public class EventServicePublicImpl implements EventServicePublic {
         long views = statClient.getView(event, Boolean.FALSE);
         long confirmedRequests = participationRequestStorage
                 .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
+        List<CommentFullDto> commentFullDtoList = commentStorage.findAllByEventId(event.getId())
+                .stream().sorted(Comparator.comparing(Comment::getCommentDate))
+                .map(commentMapper::toCommentFullDto).collect(Collectors.toList());
 
-        EventFullDto eventFullDto = eventMapper.toEvenFullDto(event, views, confirmedRequests);
+        EventFullDto eventFullDto = eventMapper.toEvenFullDto(event, views, confirmedRequests, commentFullDtoList);
 
         statClient.saveHit(EndpointHit.builder()
                 .app(appName)
@@ -73,15 +84,15 @@ public class EventServicePublicImpl implements EventServicePublic {
         }
 
         Map<Long, Long> mapViews = statClient.getViews(eventList, Boolean.FALSE);
+        Map<Long, Long> mapRequest = participationRequestPrivateService.findAmountConfirmedRequestFromEvents(eventList);
 
-        List<EventShortDto> eventShortDtoList = new ArrayList<>();
-        for (Event event : eventList) {
-            long confirmedRequests = participationRequestStorage
-                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
-            eventShortDtoList.add(eventMapper.toEventShortDto(event, mapViews.get(event.getId()), confirmedRequests));
-        }
+        List<EventShortDto> eventShortDtoList = new ArrayList<>(eventList).stream()
+                .map(event -> eventMapper.toEventShortDto(
+                        event,
+                        mapViews.get(event.getId()),
+                        mapRequest.getOrDefault(event.getId(), 0L))).collect(Collectors.toList());
 
-        if (eventParameters.getEventSort() == EventSort.VIEWS && eventList.size() > 1) {
+        if (eventParameters.getEventSort() == EventSort.VIEWS) {
             eventShortDtoList.sort((o1, o2) -> o2.getViews().compareTo(o1.getViews()));
         }
 

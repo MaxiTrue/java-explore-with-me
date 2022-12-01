@@ -1,8 +1,10 @@
 package ru.practicum.explorewithme.event.mapper;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import ru.practicum.explorewithme.category.dto.CategoryDto;
+import ru.practicum.explorewithme.comment.dto.CommentFullDto;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
 import ru.practicum.explorewithme.event.dto.EventShortDto;
 import ru.practicum.explorewithme.event.dto.NewEventDto;
@@ -12,8 +14,10 @@ import ru.practicum.explorewithme.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class EventMapper {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -30,7 +34,9 @@ public class EventMapper {
         return event;
     }
 
-    public EventFullDto toEvenFullDto(Event event, @Nullable Long views, @Nullable Long confirmedRequests) {
+    public EventFullDto toEvenFullDto(Event event, @Nullable Long views, @Nullable Long confirmedRequests,
+                                      List<CommentFullDto> commentFullDtoList) {
+
         return EventFullDto.builder()
                 .annotation(event.getAnnotation())
                 .category(new CategoryDto(event.getCategory().getId(), event.getCategory().getName()))
@@ -47,10 +53,13 @@ public class EventMapper {
                 .requestModeration(event.getRequestModeration())
                 .state(event.getState().name())
                 .title(event.getTitle())
-                .views(views == null ? 0 : views).build();
+                .views(views == null ? 0 : views)
+                .comments(commentFullDtoList)
+                .build();
     }
 
     public EventShortDto toEventShortDto(Event event, @Nullable Long views, @Nullable Long confirmedRequests) {
+
         return EventShortDto.builder()
                 .annotation(event.getAnnotation())
                 .category(new CategoryDto(event.getCategory().getId(), event.getCategory().getName()))

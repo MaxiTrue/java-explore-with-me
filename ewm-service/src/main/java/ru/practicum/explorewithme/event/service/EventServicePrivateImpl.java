@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.category.model.Category;
 import ru.practicum.explorewithme.category.storage.CategoryStorage;
 import ru.practicum.explorewithme.client.StatClient;
+import ru.practicum.explorewithme.comment.dto.CommentFullDto;
+import ru.practicum.explorewithme.comment.mapper.CommentMapper;
+import ru.practicum.explorewithme.comment.model.Comment;
+import ru.practicum.explorewithme.comment.storage.CommentStorage;
 import ru.practicum.explorewithme.event.dto.EventFullDto;
 import ru.practicum.explorewithme.event.dto.EventShortDto;
 import ru.practicum.explorewithme.event.dto.NewEventDto;
@@ -22,6 +26,7 @@ import ru.practicum.explorewithme.request.dto.ParticipationRequestDto;
 import ru.practicum.explorewithme.request.mapper.ParticipationRequestMapper;
 import ru.practicum.explorewithme.request.model.ParticipationRequest;
 import ru.practicum.explorewithme.request.model.StatusRequest;
+import ru.practicum.explorewithme.request.servise.ParticipationRequestPrivateService;
 import ru.practicum.explorewithme.request.storage.ParticipationRequestStorage;
 import ru.practicum.explorewithme.user.model.User;
 import ru.practicum.explorewithme.user.storage.UserStorage;
@@ -29,6 +34,8 @@ import ru.practicum.explorewithme.user.storage.UserStorage;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,6 +49,9 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     private final CategoryStorage categoryStorage;
     private final LocationStorage locationStorage;
     private final ParticipationRequestStorage participationRequestStorage;
+    private final CommentStorage commentStorage;
+    private final ParticipationRequestPrivateService participationRequestPrivateService;
+    private final CommentMapper commentMapper;
     private final EventMapper eventMapper;
     private final ParticipationRequestMapper participationRequestMapper;
     private final StatClient statClient;
@@ -62,7 +72,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
                                 newEventDto.getLocation().getLat(),
                                 newEventDto.getLocation().getLon())));
         event.setLocation(location);
-        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L);
+        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L, new ArrayList<>());
     }
 
     @Override
@@ -106,7 +116,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
 
         if (event.getState() == EventState.CANCELED) event.setState(EventState.PENDING);
 
-        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L);
+        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L, new ArrayList<>());
     }
 
     @Override
@@ -117,12 +127,12 @@ public class EventServicePrivateImpl implements EventServicePrivate {
         List<Event> events = eventStorage.findAllByOrganizerId(userId, pageable).getContent();
 
         Map<Long, Long> mapViews = statClient.getViews(events, Boolean.FALSE);
+        Map<Long, Long> mapRequests = participationRequestPrivateService.findAmountConfirmedRequestFromEvents(events);
 
-        return events.stream().map(event -> {
-            long confirmedRequests = participationRequestStorage
-                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
-            return eventMapper.toEventShortDto(event, mapViews.get(event.getId()), confirmedRequests);
-        }).collect(Collectors.toList());
+        return events.stream().map(event -> eventMapper.toEventShortDto(
+                event,
+                mapViews.get(event.getId()),
+                mapRequests.getOrDefault(event.getId(), 0L))).collect(Collectors.toList());
     }
 
     @Override
@@ -134,13 +144,17 @@ public class EventServicePrivateImpl implements EventServicePrivate {
 
         long views = 0;
         long confirmedRequests = 0;
+        List<CommentFullDto> commentFullDtoList = new ArrayList<>();
         if (event.getState() == EventState.PUBLISHED) {
             views = statClient.getView(event, Boolean.FALSE);
             confirmedRequests = participationRequestStorage
                     .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
+            commentFullDtoList = commentStorage.findAllByEventId(event.getId())
+                    .stream().sorted(Comparator.comparing(Comment::getCommentDate))
+                    .map(commentMapper::toCommentFullDto).collect(Collectors.toList());
         }
 
-        return eventMapper.toEvenFullDto(event, views, confirmedRequests);
+        return eventMapper.toEvenFullDto(event, views, confirmedRequests, commentFullDtoList);
     }
 
     @Override
@@ -151,7 +165,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
         if (event.getState() == EventState.PUBLISHED) throw new ValidException("You can't cancel a published event.");
         event.setState(EventState.CANCELED);
 
-        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L);
+        return eventMapper.toEvenFullDto(eventStorage.save(event), 0L, 0L, new ArrayList<>());
     }
 
     @Override
