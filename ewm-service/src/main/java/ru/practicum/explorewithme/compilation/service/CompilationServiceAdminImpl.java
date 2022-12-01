@@ -13,8 +13,7 @@ import ru.practicum.explorewithme.event.mapper.EventMapper;
 import ru.practicum.explorewithme.event.model.Event;
 import ru.practicum.explorewithme.event.storage.EventStorage;
 import ru.practicum.explorewithme.exception.ObjectNotFoundException;
-import ru.practicum.explorewithme.request.model.StatusRequest;
-import ru.practicum.explorewithme.request.storage.ParticipationRequestStorage;
+import ru.practicum.explorewithme.request.servise.ParticipationRequestPrivateService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ public class CompilationServiceAdminImpl implements CompilationServiceAdmin {
 
     private final CompilationStorage compilationStorage;
     private final EventStorage eventStorage;
-    private final ParticipationRequestStorage participationRequestStorage;
+    private final ParticipationRequestPrivateService participationRequestPrivateService;
     private final CompilationMapper compilationMapper;
     private final EventMapper eventMapper;
     private final StatClient statClient;
@@ -46,12 +45,13 @@ public class CompilationServiceAdminImpl implements CompilationServiceAdmin {
                 .save(compilationMapper.toCompilationEntity(newCompilationDto, events));
 
         Map<Long, Long> views = statClient.getViews(events, Boolean.FALSE);
+        Map<Long, Long> mapRequest = participationRequestPrivateService.findAmountConfirmedRequestFromEvents(events);
 
-        List<EventShortDto> eventShortDtoList = compilation.getEvents().stream().map(event -> {
-            long confirmedRequests = participationRequestStorage
-                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
-            return eventMapper.toEventShortDto(event, views.get(event.getId()), confirmedRequests);
-        }).collect(Collectors.toList());
+        List<EventShortDto> eventShortDtoList = compilation.getEvents().stream()
+                .map(event -> eventMapper.toEventShortDto(
+                        event,
+                        views.get(event.getId()),
+                        mapRequest.getOrDefault(event.getId(), 0L))).collect(Collectors.toList());
 
         return compilationMapper.toCompilationDto(compilation, eventShortDtoList);
 

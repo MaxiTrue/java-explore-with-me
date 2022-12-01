@@ -18,7 +18,7 @@ import ru.practicum.explorewithme.user.storage.UserStorage;
 
 @Service
 @RequiredArgsConstructor
-public class CommentServicePublicImpl implements CommentServicePublic {
+public class CommentServicePrivateImpl implements CommentServicePrivate {
 
     private final CommentStorage commentStorage;
     private final UserStorage userStorage;

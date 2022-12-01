@@ -16,16 +16,6 @@ public interface EventStorage extends JpaRepository<Event, Long> {
 
     Optional<Event> getByIdAndState(long eventId, EventState stateEvent);
 
-
-    /**@Query(value = "SELECT e FROM Event e " +
-            "WHERE ((COALESCE(:text, NULL) IS NULL OR LOWER(e.annotation) LIKE CONCAT('%', LOWER(:text) , '%')) " +
-            "OR (COALESCE(:text, NULL) IS NULL OR LOWER(e.description) LIKE CONCAT('%', LOWER(:text), '%'))) " +
-            "AND (COALESCE(:categories, NULL) IS NULL OR e.category.id IN :categories) " +
-            "AND (COALESCE(:paid, NULL) IS NULL OR e.paid = :paid) " +
-            "AND e.eventDate BETWEEN :rangeStart AND :rangeEnd AND e.state = 'PUBLISHED'")
-    Page<Event> findEventsByFilter(@Param("text") String text, @Param("categories") List<Long> categories,
-                                   @Param("paid") Boolean paid, @Param("rangeStart") LocalDateTime rangeStart,
-                                   @Param("rangeEnd") LocalDateTime rangeEnd, Pageable pageable);*/
     @Query(value = "SELECT e FROM Event e " +
             "WHERE ((:text IS NULL OR LOWER(e.annotation) LIKE CONCAT('%', LOWER(:text) , '%')) " +
             "OR (:text IS NULL OR LOWER(e.description) LIKE CONCAT('%', LOWER(:text), '%'))) " +
@@ -36,15 +26,6 @@ public interface EventStorage extends JpaRepository<Event, Long> {
                                    @Param("paid") Boolean paid, @Param("rangeStart") LocalDateTime rangeStart,
                                    @Param("rangeEnd") LocalDateTime rangeEnd, Pageable pageable);
 
-    /**@Query(value = "SELECT e FROM Event e " +
-            "WHERE ((COALESCE(:users, null) IS NULL OR e.organizer.id IN :users)) " +
-            "AND (COALESCE(:categories, null) IS NULL OR e.category.id IN :categories) " +
-            "AND (COALESCE(:states, null) IS NULL OR e.state IN :states) " +
-            "AND e.eventDate BETWEEN :rangeStart AND :rangeEnd")
-    Page<Event> findEventsByFilterAdmin(@Param("users") List<Long> users, @Param("categories") List<Long> categories,
-                                        @Param("rangeStart") LocalDateTime rangeStart,
-                                        @Param("rangeEnd") LocalDateTime rangeEnd,
-                                        @Param("states") List<EventState> states, Pageable pageable);*/
 
     @Query(value = "SELECT e FROM Event e " +
             "WHERE ((:users IS NULL OR e.organizer.id IN :users)) " +

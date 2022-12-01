@@ -26,6 +26,7 @@ import ru.practicum.explorewithme.request.dto.ParticipationRequestDto;
 import ru.practicum.explorewithme.request.mapper.ParticipationRequestMapper;
 import ru.practicum.explorewithme.request.model.ParticipationRequest;
 import ru.practicum.explorewithme.request.model.StatusRequest;
+import ru.practicum.explorewithme.request.servise.ParticipationRequestPrivateService;
 import ru.practicum.explorewithme.request.storage.ParticipationRequestStorage;
 import ru.practicum.explorewithme.user.model.User;
 import ru.practicum.explorewithme.user.storage.UserStorage;
@@ -49,6 +50,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     private final LocationStorage locationStorage;
     private final ParticipationRequestStorage participationRequestStorage;
     private final CommentStorage commentStorage;
+    private final ParticipationRequestPrivateService participationRequestPrivateService;
     private final CommentMapper commentMapper;
     private final EventMapper eventMapper;
     private final ParticipationRequestMapper participationRequestMapper;
@@ -125,12 +127,12 @@ public class EventServicePrivateImpl implements EventServicePrivate {
         List<Event> events = eventStorage.findAllByOrganizerId(userId, pageable).getContent();
 
         Map<Long, Long> mapViews = statClient.getViews(events, Boolean.FALSE);
+        Map<Long, Long> mapRequests = participationRequestPrivateService.findAmountConfirmedRequestFromEvents(events);
 
-        return events.stream().map(event -> {
-            long confirmedRequests = participationRequestStorage
-                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
-            return eventMapper.toEventShortDto(event, mapViews.get(event.getId()), confirmedRequests);
-        }).collect(Collectors.toList());
+        return events.stream().map(event -> eventMapper.toEventShortDto(
+                event,
+                mapViews.get(event.getId()),
+                mapRequests.getOrDefault(event.getId(), 0L))).collect(Collectors.toList());
     }
 
     @Override

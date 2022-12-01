@@ -6,7 +6,7 @@ import ru.practicum.explorewithme.comment.dto.UpdateCommentDto;
 import ru.practicum.explorewithme.exception.ObjectNotFoundException;
 import ru.practicum.explorewithme.exception.ValidException;
 
-public interface CommentServicePublic {
+public interface CommentServicePrivate {
 
     CommentFullDto create(NewCommentDto commentDto, long commentatorId, long eventId) throws ObjectNotFoundException;
 

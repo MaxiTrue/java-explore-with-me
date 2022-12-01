@@ -7,6 +7,7 @@ import ru.practicum.explorewithme.event.model.EventState;
 import ru.practicum.explorewithme.event.storage.EventStorage;
 import ru.practicum.explorewithme.exception.ObjectNotFoundException;
 import ru.practicum.explorewithme.exception.ValidException;
+import ru.practicum.explorewithme.request.dto.ConfirmedRequestsDto;
 import ru.practicum.explorewithme.request.dto.ParticipationRequestDto;
 import ru.practicum.explorewithme.request.mapper.ParticipationRequestMapper;
 import ru.practicum.explorewithme.request.model.ParticipationRequest;
@@ -15,8 +16,7 @@ import ru.practicum.explorewithme.request.storage.ParticipationRequestStorage;
 import ru.practicum.explorewithme.user.model.User;
 import ru.practicum.explorewithme.user.storage.UserStorage;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,9 +42,14 @@ public class ParticipationRequestServicePrivateImpl implements ParticipationRequ
         if (event.getState() != EventState.PUBLISHED) throw new ValidException("Request not published.");
         if (event.getOrganizer().getId() == userId) throw new ValidException("Request for your event.");
 
-        long amountConfirmedRequest = participationRequestStorage
-                .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
-        if (amountConfirmedRequest >= event.getParticipantLimit()) throw new ValidException("All places are occupied.");
+        //если лимит = 0 тогда воспринимаем как безлимит
+        if (event.getParticipantLimit() != 0L) {
+            long amountConfirmedRequest = participationRequestStorage
+                    .findCountByEvenIdAndStatus(eventId, StatusRequest.CONFIRMED);
+            if (amountConfirmedRequest >= event.getParticipantLimit()) {
+                throw new ValidException("All places are occupied.");
+            }
+        }
 
         ParticipationRequest participationRequest = participationRequestMapper
                 .toParticipationRequestEntity(event, user);
@@ -79,4 +84,21 @@ public class ParticipationRequestServicePrivateImpl implements ParticipationRequ
         return requests.stream()
                 .map(participationRequestMapper::toParticipationRequestDto).collect(Collectors.toList());
     }
+
+    @Override
+    public Map<Long, Long> findAmountConfirmedRequestFromEvents(List<Event> events) {
+
+        List<Long> ids = new ArrayList<>(events).stream().map(Event::getId).collect(Collectors.toList());
+
+        List<ConfirmedRequestsDto> confirmedRequestsDtoList = participationRequestStorage
+                .findCountByEvenIdsAndStatus(ids, StatusRequest.CONFIRMED);
+
+        Map<Long, Long> amountRequestFromEvents = new HashMap<>();
+        for (ConfirmedRequestsDto requestsDto : confirmedRequestsDtoList) {
+            amountRequestFromEvents.put(requestsDto.getEventId(), requestsDto.getAmountRequest());
+        }
+
+        return amountRequestFromEvents;
+    }
+
 }

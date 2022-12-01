@@ -20,6 +20,7 @@ import ru.practicum.explorewithme.exception.ObjectNotFoundException;
 import ru.practicum.explorewithme.location.model.Location;
 import ru.practicum.explorewithme.location.storage.LocationStorage;
 import ru.practicum.explorewithme.request.model.StatusRequest;
+import ru.practicum.explorewithme.request.servise.ParticipationRequestPrivateService;
 import ru.practicum.explorewithme.request.storage.ParticipationRequestStorage;
 
 import javax.xml.bind.ValidationException;
@@ -40,6 +41,7 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
     private final CategoryStorage categoryStorage;
     private final LocationStorage locationStorage;
     private final CommentStorage commentStorage;
+    private final ParticipationRequestPrivateService participationRequestPrivateService;
     private final CommentMapper commentMapper;
     private final EventMapper eventMapper;
     private final StatClient statClient;
@@ -56,14 +58,17 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
                 parameters.getPageRequest()).getContent();
 
         Map<Long, Long> mapViews = statClient.getViews(events, Boolean.FALSE);
+        Map<Long, Long> mapRequests = participationRequestPrivateService.findAmountConfirmedRequestFromEvents(events);
 
         return events.stream().map(event -> {
-            long confirmedRequests = participationRequestStorage
-                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
             List<CommentFullDto> commentFullDtoList = commentStorage.findAllByEventId(event.getId())
                     .stream().sorted(Comparator.comparing(Comment::getCommentDate))
                     .map(commentMapper::toCommentFullDto).collect(Collectors.toList());
-            return eventMapper.toEvenFullDto(event, mapViews.get(event.getId()), confirmedRequests, commentFullDtoList);
+            return eventMapper.toEvenFullDto(
+                    event,
+                    mapViews.get(event.getId()),
+                    mapRequests.getOrDefault(event.getId(), 0L),
+                    commentFullDtoList);
         }).collect(Collectors.toList());
 
     }

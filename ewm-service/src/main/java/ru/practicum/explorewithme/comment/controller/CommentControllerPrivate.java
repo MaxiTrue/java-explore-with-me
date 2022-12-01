@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.explorewithme.comment.dto.NewCommentDto;
 import ru.practicum.explorewithme.comment.dto.UpdateCommentDto;
-import ru.practicum.explorewithme.comment.service.CommentServicePublic;
+import ru.practicum.explorewithme.comment.service.CommentServicePrivate;
 import ru.practicum.explorewithme.exception.ObjectNotFoundException;
 import ru.practicum.explorewithme.exception.ValidException;
 
@@ -17,9 +17,9 @@ import ru.practicum.explorewithme.exception.ValidException;
 @RequestMapping("/users/{userId}/events/{eventId}/comments")
 @RestController
 @RequiredArgsConstructor
-public class CommentControllerPublic {
+public class CommentControllerPrivate {
 
-    private final CommentServicePublic commentServicePublic;
+    private final CommentServicePrivate commentServicePrivate;
 
     @PostMapping
     ResponseEntity<Object> create(@Validated @RequestBody NewCommentDto commentDto,
@@ -30,7 +30,7 @@ public class CommentControllerPublic {
         commentDto.setPinned(Boolean.FALSE);
         commentDto.setChanged(Boolean.FALSE);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(commentServicePublic.create(commentDto, commentatorId, eventId));
+                .body(commentServicePrivate.create(commentDto, commentatorId, eventId));
     }
 
     @PatchMapping("/{commId}")
@@ -40,7 +40,7 @@ public class CommentControllerPublic {
                                   @PathVariable("commId") long commId) throws ObjectNotFoundException, ValidException {
         log.debug("Request accepted PATCH: /users/{userId}/events/{eventId}/comments/{commId}");
         return ResponseEntity.status(HttpStatus.OK)
-                .body(commentServicePublic.update(commentDto, commentatorId, eventId, commId));
+                .body(commentServicePrivate.update(commentDto, commentatorId, eventId, commId));
     }
 
     @DeleteMapping("{commId}")
@@ -48,7 +48,7 @@ public class CommentControllerPublic {
                                   @PathVariable("eventId") long eventId,
                                   @PathVariable("commId") long commId) throws ObjectNotFoundException, ValidException {
         log.debug("Request accepted DELETE: /users/{userId}/events/{eventId}/comments/{commId}");
-        commentServicePublic.delete(commentatorId, eventId, commId);
+        commentServicePrivate.delete(commentatorId, eventId, commId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

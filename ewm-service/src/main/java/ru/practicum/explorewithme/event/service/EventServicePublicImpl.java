@@ -19,6 +19,7 @@ import ru.practicum.explorewithme.event.model.EventState;
 import ru.practicum.explorewithme.event.storage.EventStorage;
 import ru.practicum.explorewithme.exception.ObjectNotFoundException;
 import ru.practicum.explorewithme.request.model.StatusRequest;
+import ru.practicum.explorewithme.request.servise.ParticipationRequestPrivateService;
 import ru.practicum.explorewithme.request.storage.ParticipationRequestStorage;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,8 +37,9 @@ public class EventServicePublicImpl implements EventServicePublic {
 
     private final EventStorage eventStorage;
     private final ParticipationRequestStorage participationRequestStorage;
-    private final EventMapper eventMapper;
     private final CommentStorage commentStorage;
+    private final ParticipationRequestPrivateService participationRequestPrivateService;
+    private final EventMapper eventMapper;
     private final CommentMapper commentMapper;
     private final StatClient statClient;
 
@@ -82,15 +84,15 @@ public class EventServicePublicImpl implements EventServicePublic {
         }
 
         Map<Long, Long> mapViews = statClient.getViews(eventList, Boolean.FALSE);
+        Map<Long, Long> mapRequest = participationRequestPrivateService.findAmountConfirmedRequestFromEvents(eventList);
 
-        List<EventShortDto> eventShortDtoList = new ArrayList<>();
-        for (Event event : eventList) {
-            long confirmedRequests = participationRequestStorage
-                    .findCountByEvenIdAndStatus(event.getId(), StatusRequest.CONFIRMED);
-            eventShortDtoList.add(eventMapper.toEventShortDto(event, mapViews.get(event.getId()), confirmedRequests));
-        }
+        List<EventShortDto> eventShortDtoList = new ArrayList<>(eventList).stream()
+                .map(event -> eventMapper.toEventShortDto(
+                        event,
+                        mapViews.get(event.getId()),
+                        mapRequest.getOrDefault(event.getId(), 0L))).collect(Collectors.toList());
 
-        if (eventParameters.getEventSort() == EventSort.VIEWS && eventList.size() > 1) {
+        if (eventParameters.getEventSort() == EventSort.VIEWS) {
             eventShortDtoList.sort((o1, o2) -> o2.getViews().compareTo(o1.getViews()));
         }
 
